@@ -8,7 +8,7 @@ services:
     image: mongo:7
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: radar
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-radar}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?set MONGO_PASSWORD in .env}
     volumes:
       - ./data/mongo:/data/db
@@ -26,7 +26,10 @@ services:
     restart: unless-stopped
     depends_on: [mongo, play-sidecar]
     environment:
-      MONGO_URI: mongodb://radar:${MONGO_PASSWORD}@mongo:27017/?authSource=admin
+      # The collector builds the connection string itself (URL-encodes the password).
+      MONGO_HOST: mongo:27017
+      MONGO_USER: ${MONGO_USER:-radar}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
       PLAY_SIDECAR_URL: http://play-sidecar:3000
       CONFIG_PATH: /config/seeds.json
       EXPORT_DIR: /exports

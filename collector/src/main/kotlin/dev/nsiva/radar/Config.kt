@@ -24,7 +24,7 @@ data class RadarConfig(
 )
 
 data class Env(
-    val mongoUri: String = System.getenv("MONGO_URI") ?: "mongodb://localhost:27017",
+    val mongoUri: String = mongoUriFromEnv(),
     val playSidecar: String = System.getenv("PLAY_SIDECAR_URL") ?: "http://localhost:3000",
     val configPath: String = System.getenv("CONFIG_PATH") ?: "config/seeds.json",
     val exportDir: String = System.getenv("EXPORT_DIR") ?: "exports",
@@ -46,6 +46,19 @@ data class RedditCreds(val clientId: String, val clientSecret: String, val usern
             return RedditCreds(id, secret, System.getenv("REDDIT_USERNAME")?.takeIf { it.isNotBlank() })
         }
     }
+}
+
+/**
+ * MONGO_URI wins if set (e.g. "memory" for local runs). Otherwise built from MONGO_HOST + MONGO_USER +
+ * MONGO_PASSWORD, URL-encoding the credentials so passwords with @ : / % etc. work.
+ */
+fun mongoUriFromEnv(getenv: (String) -> String? = System::getenv): String {
+    getenv("MONGO_URI")?.takeIf { it.isNotBlank() }?.let { return it }
+    val host = getenv("MONGO_HOST")?.takeIf { it.isNotBlank() } ?: "localhost:27017"
+    val pass = getenv("MONGO_PASSWORD")?.takeIf { it.isNotEmpty() } ?: return "mongodb://$host"
+    val user = getenv("MONGO_USER")?.takeIf { it.isNotBlank() } ?: "radar"
+    fun e(s: String) = java.net.URLEncoder.encode(s, Charsets.UTF_8).replace("+", "%20")
+    return "mongodb://${e(user)}:${e(pass)}@$host/?authSource=admin"
 }
 
 val json = Json { ignoreUnknownKeys = true; prettyPrint = false }

@@ -35,7 +35,7 @@ sudo chown gh-runner: /DATA/AppData/idea-radar
 ```
 Note: membership of the `docker` group is effectively root on that machine. That's normal for a deploy runner, but it's why step 0 matters.
 
-**Already deployed by hand?** Keep the same `MONGO_PASSWORD` you used then (MongoDB sets the password only on first start), and `sudo chown -R gh-runner: /DATA/AppData/idea-radar` except `data/`.
+**Already deployed by hand?** Keep the same user/password you used then (`DB_USER`/`DB_PASS`) (MongoDB sets the password only on first start), and `sudo chown -R gh-runner: /DATA/AppData/idea-radar` except `data/`.
 
 ## 2. Register the runner
 1. GitHub → repo **Settings → Actions → Runners → New self-hosted runner** → **Linux**, and the architecture of your server (`uname -m`: `x86_64` = x64, `aarch64` = ARM64).
@@ -64,13 +64,14 @@ GitHub → repo **Settings → Secrets and variables → Actions**:
 
 | Name | Kind | Required |
 |---|---|---|
-| `MONGO_PASSWORD` | Secret | yes — long random string |
+| `DB_USER` | Secret | yes — MongoDB root user name |
+| `DB_PASS` | Secret | yes — long random string (no `'` or newline) |
 | `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET` | Secret | after Reddit approves API access |
 | `REDDIT_USERNAME` | Variable | with the Reddit secrets |
 | `BRAVE_API_KEY` | Secret | optional |
 | `DEPLOY_DIR` | Variable | only if not `/DATA/AppData/idea-radar` |
 
-Or from your laptop: `gh secret set MONGO_PASSWORD --repo nsiva7/idea-radar` (it prompts for the value).
+Or from your laptop: `gh secret set DB_PASS --repo nsiva7/idea-radar` (it prompts for the value).
 
 ## 4. First deploy
 GitHub → **Actions → Deploy → Run workflow**, or push any change to `main`.

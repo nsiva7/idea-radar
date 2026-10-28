@@ -11,6 +11,7 @@
 #   DEPLOY_DIR       target folder            (default /DATA/AppData/idea-radar)
 #   HEALTH_URL       collector URL            (default http://localhost:8090)
 #   MONGO_PASSWORD   required on first deploy; when set, .env is (re)written from the variables below
+#   MONGO_USER       MongoDB root user        (default radar)
 #   REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USERNAME, BRAVE_API_KEY   optional
 set -euo pipefail
 
@@ -34,20 +35,27 @@ rsync -a --delete \
   "$SRC"/ "$DEPLOY_DIR"/
 
 # 2. .env: write from secrets when provided, otherwise keep the existing one.
+# Values are single-quoted so docker compose takes them literally (no $ interpolation).
+put() {
+  case "$2" in *"'"*|*$'\n'*) fail "$1 must not contain a single quote or newline" ;; esac
+  printf "%s='%s'\n" "$1" "$2"
+}
 if [ -n "${MONGO_PASSWORD:-}" ]; then
   log "Writing .env from provided secrets"
   ( umask 077
     {
-      echo "MONGO_PASSWORD=$MONGO_PASSWORD"
-      echo "REDDIT_CLIENT_ID=${REDDIT_CLIENT_ID:-}"
-      echo "REDDIT_CLIENT_SECRET=${REDDIT_CLIENT_SECRET:-}"
-      echo "REDDIT_USERNAME=${REDDIT_USERNAME:-}"
-      echo "BRAVE_API_KEY=${BRAVE_API_KEY:-}"
-    } > "$DEPLOY_DIR/.env" )
+      put MONGO_USER "${MONGO_USER:-radar}"
+      put MONGO_PASSWORD "$MONGO_PASSWORD"
+      put REDDIT_CLIENT_ID "${REDDIT_CLIENT_ID:-}"
+      put REDDIT_CLIENT_SECRET "${REDDIT_CLIENT_SECRET:-}"
+      put REDDIT_USERNAME "${REDDIT_USERNAME:-}"
+      put BRAVE_API_KEY "${BRAVE_API_KEY:-}"
+    } > "$DEPLOY_DIR/.env.tmp" ) || { rm -f "$DEPLOY_DIR/.env.tmp"; exit 1; }
+  mv "$DEPLOY_DIR/.env.tmp" "$DEPLOY_DIR/.env"
 elif [ -f "$DEPLOY_DIR/.env" ]; then
   log "No secrets passed; keeping existing .env"
 else
-  fail "No .env in $DEPLOY_DIR and MONGO_PASSWORD not set"
+  fail "No .env in $DEPLOY_DIR and MONGO_PASSWORD (GitHub secret DB_PASS) not set"
 fi
 
 # 3. Build and (re)start. Unchanged services are left running.

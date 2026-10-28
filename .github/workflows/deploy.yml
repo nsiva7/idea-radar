@@ -30,7 +30,8 @@ jobs:
       - name: Deploy
         env:
           DEPLOY_DIR: ${{ vars.DEPLOY_DIR || '/DATA/AppData/idea-radar' }}
-          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+          MONGO_USER: ${{ secrets.DB_USER }}
+          MONGO_PASSWORD: ${{ secrets.DB_PASS }}
           REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
           REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
           REDDIT_USERNAME: ${{ vars.REDDIT_USERNAME }}

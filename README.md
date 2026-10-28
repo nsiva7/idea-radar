@@ -20,7 +20,7 @@ CasaOS server (24/7)                          Laptop
 scp -r idea-radar you@server:/DATA/AppData/   # or any path
 ssh you@server
 cd /DATA/AppData/idea-radar
-cp .env.example .env && nano .env              # set a long MONGO_PASSWORD
+cp .env.example .env && nano .env              # set MONGO_USER and a long MONGO_PASSWORD
 nano config/seeds.json                          # your seeds, competitors, subreddits
 docker compose up -d --build
 docker compose logs -f collector                # first run starts immediately (takes a while: throttled)
