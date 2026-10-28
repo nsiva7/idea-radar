@@ -1,5 +1,5 @@
-# Deploys Idea Radar to the home server through a self-hosted runner.
-# Runs on push to main (code/config changes) or manually from the Actions tab.
+# Push -> self-hosted runner (on the CasaOS server itself) -> scripts/deploy.sh builds and restarts locally.
+# No SSH: the runner and Docker are on the same machine.
 # Setup: docs/SELF_HOSTED_RUNNER.md
 name: Deploy
 
@@ -21,73 +21,18 @@ permissions:
 
 jobs:
   deploy:
-    # Only the server's runner has this label, so the job never lands anywhere else.
+    # Only the server's runner has this label.
     runs-on: [self-hosted, idea-radar]
     timeout-minutes: 30
-    env:
-      # Override with a repository variable DEPLOY_DIR if your path differs.
-      DEPLOY_DIR: ${{ vars.DEPLOY_DIR || '/DATA/AppData/idea-radar' }}
-      HEALTH_URL: http://localhost:8090
-
     steps:
-      - name: Check out
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
 
-      - name: Check required secret
+      - name: Deploy
         env:
-          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-        run: |
-          if [ -z "$MONGO_PASSWORD" ]; then
-            echo "::error::Repository secret MONGO_PASSWORD is not set (Settings > Secrets and variables > Actions)."
-            exit 1
-          fi
-
-      - name: Sync files to deploy folder
-        # data/ (MongoDB files), exports/, reports/ and .env live only on the server and are never touched.
-        run: |
-          mkdir -p "$DEPLOY_DIR"
-          rsync -a --delete \
-            --exclude '.git/' --exclude '.github/' \
-            --exclude 'data/' --exclude 'exports/' --exclude 'reports/' --exclude '.env' \
-            ./ "$DEPLOY_DIR"/
-
-      - name: Write .env from secrets
-        env:
+          DEPLOY_DIR: ${{ vars.DEPLOY_DIR || '/DATA/AppData/idea-radar' }}
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
           REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
           REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
           REDDIT_USERNAME: ${{ vars.REDDIT_USERNAME }}
           BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
-        run: |
-          umask 077
-          {
-            echo "MONGO_PASSWORD=$MONGO_PASSWORD"
-            echo "REDDIT_CLIENT_ID=$REDDIT_CLIENT_ID"
-            echo "REDDIT_CLIENT_SECRET=$REDDIT_CLIENT_SECRET"
-            echo "REDDIT_USERNAME=$REDDIT_USERNAME"
-            echo "BRAVE_API_KEY=$BRAVE_API_KEY"
-          } > "$DEPLOY_DIR/.env"
-
-      - name: Build and start containers
-        run: |
-          cd "$DEPLOY_DIR"
-          docker compose up -d --build --remove-orphans
-          docker compose ps
-
-      - name: Health check
-        run: |
-          for i in $(seq 1 36); do
-            if curl -fsS "$HEALTH_URL/health" >/dev/null 2>&1; then
-              echo "Collector is up."
-              curl -fsS "$HEALTH_URL/status"; echo
-              exit 0
-            fi
-            sleep 5
-          done
-          echo "::error::Collector did not answer on $HEALTH_URL/health within 3 minutes."
-          cd "$DEPLOY_DIR" && docker compose logs --tail 80
-          exit 1
-
-      - name: Remove old images
-        if: always()
-        run: docker image prune -f
+        run: bash scripts/deploy.sh

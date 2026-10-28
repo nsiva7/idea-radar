@@ -1,7 +1,11 @@
 # Auto-deploy with a self-hosted GitHub Actions runner
 
-Every push to `main` (except docs-only changes) runs `.github/workflows/deploy.yml` on your CasaOS server:
-checkout → rsync to the deploy folder → write `.env` from GitHub secrets → `docker compose up -d --build` → health check.
+```
+git push ──► GitHub Actions ──► self-hosted runner (on the CasaOS server) ──► scripts/deploy.sh
+                                                                              rsync → .env → docker compose up --build → health check
+```
+The runner lives on the same machine as CasaOS/Docker, so there is **no SSH and no inbound port**: the runner connects out to GitHub, picks up the job, and builds and restarts the containers locally.
+All deploy logic is in [`scripts/deploy.sh`](../scripts/deploy.sh); you can also run it by hand on the server from a checkout (it keeps the existing `.env` when no secrets are passed).
 
 `data/` (MongoDB), `exports/`, `reports/` and `.env` stay on the server and are never overwritten.
 `config/seeds.json` now comes from the repo: edit it in git and push, instead of editing it on the server.
@@ -15,7 +19,7 @@ GitHub → repo **Settings → Actions → General → Fork pull request workflo
 
 The deploy workflow itself only runs on pushes to `main` and manual runs, never on pull requests.
 
-## 1. Prepare the server (SSH in, once)
+## 1. Prepare the server (once, in a terminal on the server: CasaOS web terminal, local console or SSH)
 ```bash
 # Docker, curl and rsync must be present
 docker compose version && curl --version | head -1 && rsync --version | head -1

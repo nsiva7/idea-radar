@@ -13,7 +13,7 @@ CasaOS server (24/7)                          Laptop
 ```
 
 ## 1. Deploy
-**Recommended: auto-deploy from GitHub.** A self-hosted runner on the server redeploys on every push to `main`. Setup: [docs/SELF_HOSTED_RUNNER.md](docs/SELF_HOSTED_RUNNER.md). With it, edit `config/seeds.json` in the repo and push.
+**Recommended: auto-deploy from GitHub.** A self-hosted runner on the server itself runs `scripts/deploy.sh` on every push to `main` (no SSH). Setup: [docs/SELF_HOSTED_RUNNER.md](docs/SELF_HOSTED_RUNNER.md). With it, edit `config/seeds.json` in the repo and push.
 
 **Manual alternative (~30 min):**
 ```bash
