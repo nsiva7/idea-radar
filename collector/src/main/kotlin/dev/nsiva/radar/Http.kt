@@ -106,6 +106,8 @@ private val entities = mapOf("&nbsp;" to " ", "&amp;" to "&", "&lt;" to "<", "&g
 fun String.stripHtml(): String {
     var s = replace(Regex("<[^>]*>"), " ")
     entities.forEach { (k, v) -> s = s.replace(k, v) }
-    s = s.replace(Regex("&#(\\d+);")) { m -> m.groupValues[1].toIntOrNull()?.let { String(Character.toChars(it)) } ?: m.value }
+    s = s.replace(Regex("&#([xX]?)([0-9a-fA-F]+);")) { m ->
+        m.groupValues[2].toIntOrNull(if (m.groupValues[1].isEmpty()) 10 else 16)?.let { String(Character.toChars(it)) } ?: m.value
+    }
     return s.replace(Regex("\\s+"), " ").trim()
 }

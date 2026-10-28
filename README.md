@@ -7,7 +7,7 @@ CasaOS server (24/7)                          Laptop
 ┌──────────────────────────────┐              ┌──────────────────────────┐
 │ collector (Ktor) ─ daily ──► │  exports/ ──►│ Syncthing ─► Cowork      │
 │   Google suggest, Trends,    │   (sync)     │  weekly prompt ─►        │
-│   News, Reddit, Play ◄─ sidecar             │  reports/2026-W44.md     │
+│   News, Reddit, HN, Play ◄─ sidecar         │  reports/2026-W44.md     │
 │ MongoDB (no exposed port)    │              └──────────────────────────┘
 └──────────────────────────────┘
 ```
@@ -36,6 +36,15 @@ Reddit blocks most unauthenticated requests (403). To enable it:
 
 Without credentials the collector tries the public JSON once per run and skips Reddit on the first 403/429.
 
+### Reddit via Brave Search (no Reddit approval needed)
+`reddit_search` finds recent Reddit posts for each `redditQueries` phrase through the official Brave Search API (`site:reddit.com`, past month).
+1. Sign up at api-dashboard.search.brave.com, pick the **Search** plan (includes free monthly credit; a card is required for abuse prevention).
+2. Create an API key, put it in `.env` as `BRAVE_API_KEY`, `docker compose up -d`.
+3. `curl localhost:8090/status` shows `"braveSearch":true`. ~4 searches/day ≈ 120/month.
+
+### Hacker News (always on, no key)
+`hackernews` searches Ask HN posts, stories and comments from the last 30 days for exact phrases like "is there an app". Override the phrases with `hnQueries` in `seeds.json`. Expect a handful of hits per week, mostly developer tools.
+
 **MongoDB note:** port 27017 is deliberately not published. Use `ssh -L 27017:...` or `docker compose exec mongo mongosh` if you want to look inside.
 If `mongo:7` exits immediately on an older CPU (no AVX), switch the image to `mongo:4.4`.
 
@@ -55,7 +64,7 @@ Landing page or minimal Play listing → measure interest → build only what pu
 - `REQUEST_DELAY_MS` (default 2500): raise it if you see 429s in logs.
 - Seed count drives runtime: ~18 seeds × 2 regions ≈ 1–2 h per run with the default delay. That's fine for a daily job.
 - Reddit: see the Reddit section above (OAuth via `.env`).
-- `COLLECTORS=news,play` limits a run to those collectors (names: `trends_daily, google_suggest, play, reddit, news`).
+- `COLLECTORS=news,play` limits a run to those collectors (names: `trends_daily, google_suggest, play, reddit, reddit_search, hackernews, news`).
 - Google endpoints used (Trends RSS, autocomplete, News RSS) are public but unofficial; expect occasional format changes. Each collector fails independently, so one breaking doesn't stop the run.
 
 ## Local development (no Docker)

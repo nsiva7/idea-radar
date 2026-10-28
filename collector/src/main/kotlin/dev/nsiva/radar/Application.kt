@@ -36,6 +36,8 @@ class Radar(private val env: Env) {
         GoogleSuggestCollector(http),
         PlayCollector(http, env.playSidecar),
         RedditCollector(http, env.reddit),
+        RedditSearchCollector(http, env.braveApiKey),
+        HackerNewsCollector(http),
         NewsCollector(http),
     )
 
@@ -141,6 +143,7 @@ fun Application.module(radar: Radar, env: Env) {
                 put("lastError", radar.lastError)
                 put("lastCounts", buildJsonObject { radar.lastCounts.forEach { (k, v) -> put(k, JsonPrimitive(v)) } })
                 put("redditOAuth", env.reddit != null)
+                put("braveSearch", env.braveApiKey != null)
             }
             call.respondText(body.toString(), ContentType.Application.Json)
         }

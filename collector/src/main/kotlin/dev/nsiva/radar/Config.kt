@@ -19,6 +19,7 @@ data class RadarConfig(
     val subreddits: List<String> = emptyList(),
     val redditQueries: List<String> = emptyList(),
     val newsQueries: List<String> = emptyList(),
+    val hnQueries: List<String> = emptyList(),   // empty = built-in "is there an app"-style phrases
 )
 
 data class Env(
@@ -30,6 +31,7 @@ data class Env(
     val requestDelayMs: Long = System.getenv("REQUEST_DELAY_MS")?.toLongOrNull() ?: 2500,
     val port: Int = System.getenv("PORT")?.toIntOrNull() ?: 8080,
     val reddit: RedditCreds? = RedditCreds.fromEnv(),
+    val braveApiKey: String? = System.getenv("BRAVE_API_KEY")?.takeIf { it.isNotBlank() },
 )
 
 /** Optional Reddit OAuth ("script" app). Both id and secret must be set to enable it. */

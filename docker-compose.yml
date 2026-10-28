@@ -36,6 +36,8 @@ services:
       REDDIT_CLIENT_ID: ${REDDIT_CLIENT_ID:-}
       REDDIT_CLIENT_SECRET: ${REDDIT_CLIENT_SECRET:-}
       REDDIT_USERNAME: ${REDDIT_USERNAME:-}
+      # Optional: Reddit posts via Brave Search API (api-dashboard.search.brave.com). Empty = skipped.
+      BRAVE_API_KEY: ${BRAVE_API_KEY:-}
       TZ: Asia/Kolkata
     volumes:
       - ./config:/config:ro
