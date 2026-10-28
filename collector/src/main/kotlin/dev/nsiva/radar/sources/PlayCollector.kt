@@ -3,6 +3,9 @@ package dev.nsiva.radar.sources
 import dev.nsiva.radar.*
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonPrimitive
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger("play")
 
 /**
  * Google Play via the sidecar:
@@ -14,11 +17,33 @@ class PlayCollector(private val http: Http, private val sidecar: String) : Colle
     override val name = "play"
     private val dayMs = 86_400_000.0
 
+    /** Thrown after [MAX_FAILURES] sidecar timeouts/5xx in a row, so one bad run doesn't burn an hour on timeouts. */
+    private class SidecarDown : Exception()
+    private var failures = 0
+
+    private suspend fun call(path: String): String? {
+        val r = http.fetch("$sidecar$path")
+        if (r.status == -1 || r.status >= 500) {
+            if (++failures >= MAX_FAILURES) throw SidecarDown()
+        } else failures = 0 // 2xx, or 404 for a wrong appId: the sidecar itself is fine
+        return r.body
+    }
+
     private suspend fun arr(path: String): JsonArray? =
-        http.get("$sidecar$path", throttle = true)?.let { runCatching { json.parseToJsonElement(it) as? JsonArray }.getOrNull() }
+        call(path)?.let { runCatching { json.parseToJsonElement(it) as? JsonArray }.getOrNull() }
 
     override suspend fun collect(cfg: RadarConfig): List<Signal> {
         val out = mutableListOf<Signal>()
+        failures = 0
+        try {
+            collectInto(out, cfg)
+        } catch (_: SidecarDown) {
+            log.error("Play sidecar failed {} times in a row; skipping the rest of Play this run (kept {} signals)", MAX_FAILURES, out.size)
+        }
+        return out
+    }
+
+    private suspend fun collectInto(out: MutableList<Signal>, cfg: RadarConfig) {
         val now = System.currentTimeMillis()
 
         for (r in cfg.regions) {
@@ -53,7 +78,7 @@ class PlayCollector(private val http: Http, private val sidecar: String) : Colle
             }
 
             for (appId in cfg.competitorApps) {
-                http.get("$sidecar/app?appId=${enc(appId)}&$c")?.let { body ->
+                call("/app?appId=${enc(appId)}&$c")?.let { body ->
                     val a = runCatching { json.parseToJsonElement(body).asObj() }.getOrNull() ?: return@let
                     out += Signal(
                         "play_competitor", r.code, appId, a.str("title") ?: appId, url = a.str("url"),
@@ -80,6 +105,7 @@ class PlayCollector(private val http: Http, private val sidecar: String) : Colle
                 }
             }
         }
-        return out
     }
+
+    private companion object { const val MAX_FAILURES = 5 }
 }
