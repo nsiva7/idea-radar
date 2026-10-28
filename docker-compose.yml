@@ -1,0 +1,48 @@
+# Idea Radar — collector stack for CasaOS / Debian
+# Import in CasaOS: App Store → "+" → Install a customized app → Import (docker compose)
+# Or from SSH:  docker compose up -d --build
+name: idea-radar
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: radar
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?set MONGO_PASSWORD in .env}
+    volumes:
+      - ./data/mongo:/data/db
+    # No ports published on purpose: only reachable inside this compose network.
+    # For Compass from your laptop, use an SSH tunnel instead of exposing 27017.
+    networks: [radar]
+
+  play-sidecar:
+    build: ./play-sidecar
+    restart: unless-stopped
+    networks: [radar]
+
+  collector:
+    build: ./collector
+    restart: unless-stopped
+    depends_on: [mongo, play-sidecar]
+    environment:
+      MONGO_URI: mongodb://radar:${MONGO_PASSWORD}@mongo:27017/?authSource=admin
+      PLAY_SIDECAR_URL: http://play-sidecar:3000
+      CONFIG_PATH: /config/seeds.json
+      EXPORT_DIR: /exports
+      RUN_EVERY_HOURS: "24"
+      REQUEST_DELAY_MS: "2500"
+      # Optional Reddit OAuth (free "script" app at reddit.com/prefs/apps). Empty = public JSON, often 403.
+      REDDIT_CLIENT_ID: ${REDDIT_CLIENT_ID:-}
+      REDDIT_CLIENT_SECRET: ${REDDIT_CLIENT_SECRET:-}
+      REDDIT_USERNAME: ${REDDIT_USERNAME:-}
+      TZ: Asia/Kolkata
+    volumes:
+      - ./config:/config:ro
+      - ./exports:/exports        # sync this folder to your laptop (Syncthing)
+    ports:
+      - "8090:8080"               # /health, /status, POST /run, /export/latest  (LAN only)
+    networks: [radar]
+
+networks:
+  radar: {}

@@ -1,0 +1,20 @@
+{
+  "regions": [
+    { "code": "IN", "lang": "en" },
+    { "code": "US", "lang": "en" }
+  ],
+  "seedKeywords": [
+    "billing app", "khata app", "invoice maker", "attendance app",
+    "expense tracker", "loan emi calculator", "pdf to", "scanner app",
+    "exam preparation app", "study planner", "habit tracker",
+    "rent tracker", "staff salary app", "gst calculator",
+    "telugu app", "offline app for", "app to track", "app to remind"
+  ],
+  "competitorApps": [
+    "in.okcredit.merchant",
+    "com.khatabook.android"
+  ],
+  "subreddits": ["androidapps", "AppIdeas", "SideProject", "india", "smallbusiness", "productivity"],
+  "redditQueries": ["\"is there an app\"", "\"app that can\"", "\"looking for an app\"", "\"wish there was an app\""],
+  "newsQueries": ["new rule from", "apply online deadline", "mandatory from next month", "new scheme launched"]
+}

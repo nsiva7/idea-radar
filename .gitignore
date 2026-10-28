@@ -1,0 +1,8 @@
+.env
+data/
+exports/
+collector/build/
+collector/.gradle/
+collector/.kotlin/
+play-sidecar/node_modules/
+.idea/

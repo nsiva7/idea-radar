@@ -1,0 +1,10 @@
+{
+  "name": "play-sidecar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "server.js",
+  "dependencies": {
+    "google-play-scraper": "10.1.3"
+  }
+}
