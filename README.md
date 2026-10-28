@@ -12,7 +12,10 @@ CasaOS server (24/7)                          Laptop
 └──────────────────────────────┘
 ```
 
-## 1. Deploy (once, ~30 min)
+## 1. Deploy
+**Recommended: auto-deploy from GitHub.** A self-hosted runner on the server redeploys on every push to `main`. Setup: [docs/SELF_HOSTED_RUNNER.md](docs/SELF_HOSTED_RUNNER.md). With it, edit `config/seeds.json` in the repo and push.
+
+**Manual alternative (~30 min):**
 ```bash
 scp -r idea-radar you@server:/DATA/AppData/   # or any path
 ssh you@server
@@ -21,6 +24,10 @@ cp .env.example .env && nano .env              # set a long MONGO_PASSWORD
 nano config/seeds.json                          # your seeds, competitors, subreddits
 docker compose up -d --build
 docker compose logs -f collector                # first run starts immediately (takes a while: throttled)
+```
+
+Either way, on the server:
+```bash
 curl -X POST http://localhost:8090/run          # manual run any time (409 if one is already running)
 curl http://localhost:8090/status               # last run: per-collector counts, errors
 ```
