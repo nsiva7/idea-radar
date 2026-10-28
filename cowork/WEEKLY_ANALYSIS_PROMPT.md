@@ -14,6 +14,7 @@ Target markets: India and global — let demand decide.
    - `play_search` with `weak_*` tags: incumbents that look beatable
    - `play_review_negative`: complaints that become features (ads, forced login, no offline, no regional language, bugs)
    - `reddit` / `reddit_search` / `hackernews`: explicit "is there an app…" requests (HN skews to developer tools; weight consumer requests higher)
+   - `stackexchange`: software/app requests; `unanswered` tag + high `views` = unmet demand
    - `news` / `trends_daily`: new rules, deadlines, schemes, events that create demand
    - Higher `seenCount` and older `firstSeen` = persistent demand, not a spike. Weight this heavily.
 3. Score each opportunity 1–5 on: demand strength, demand persistence, competitor weakness,

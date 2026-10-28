@@ -7,7 +7,7 @@ import java.security.MessageDigest
  * which is how persistent demand shows up (vs. one-day spikes).
  */
 data class Signal(
-    val source: String,           // trends_daily | google_suggest | play_suggest | play_search | play_competitor | play_review_negative | reddit | reddit_search | hackernews | news
+    val source: String,           // trends_daily | google_suggest | play_suggest | play_search | play_competitor | play_review_negative | reddit | reddit_search | hackernews | stackexchange | news
     val region: String,           // IN | US | GLOBAL ...
     val seed: String?,            // which seed keyword / app / query produced it
     val title: String,

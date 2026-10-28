@@ -20,6 +20,7 @@ data class RadarConfig(
     val redditQueries: List<String> = emptyList(),
     val newsQueries: List<String> = emptyList(),
     val hnQueries: List<String> = emptyList(),   // empty = built-in "is there an app"-style phrases
+    val stackExchangeSites: List<String> = listOf("softwarerecs", "android"),
 )
 
 data class Env(

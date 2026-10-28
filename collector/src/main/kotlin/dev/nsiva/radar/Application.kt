@@ -38,6 +38,7 @@ class Radar(private val env: Env) {
         RedditCollector(http, env.reddit),
         RedditSearchCollector(http, env.braveApiKey),
         HackerNewsCollector(http),
+        StackExchangeCollector(http),
         NewsCollector(http),
     )
 

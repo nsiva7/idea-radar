@@ -18,6 +18,7 @@ dependencies {
     implementation("io.ktor:ktor-server-cio:$ktor")
     implementation("io.ktor:ktor-client-core:$ktor")
     implementation("io.ktor:ktor-client-cio:$ktor")
+    implementation("io.ktor:ktor-client-encoding:$ktor")   // gzip (Stack Exchange always compresses)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
     implementation("org.mongodb:mongodb-driver-kotlin-coroutine:5.3.1")
     implementation("ch.qos.logback:logback-classic:1.5.18")

@@ -45,6 +45,9 @@ Without credentials the collector tries the public JSON once per run and skips R
 ### Hacker News (always on, no key)
 `hackernews` searches Ask HN posts, stories and comments from the last 30 days for exact phrases like "is there an app". Override the phrases with `hnQueries` in `seeds.json`. Expect a handful of hits per week, mostly developer tools.
 
+### Stack Exchange (always on, no key)
+`stackexchange` reads the last 30 days of questions from the sites in `stackExchangeSites` (default `softwarerecs`, `android`) through the public API (no signup, 300 requests/day per IP; this uses one per site). Every Software Recommendations question is kept; other sites keep only request-style titles ("is there an app…", "app to…"). Questions with no answers are tagged `unanswered` — many views + unanswered = unmet demand.
+
 **MongoDB note:** port 27017 is deliberately not published. Use `ssh -L 27017:...` or `docker compose exec mongo mongosh` if you want to look inside.
 If `mongo:7` exits immediately on an older CPU (no AVX), switch the image to `mongo:4.4`.
 
@@ -64,7 +67,7 @@ Landing page or minimal Play listing → measure interest → build only what pu
 - `REQUEST_DELAY_MS` (default 2500): raise it if you see 429s in logs.
 - Seed count drives runtime: ~18 seeds × 2 regions ≈ 1–2 h per run with the default delay. That's fine for a daily job.
 - Reddit: see the Reddit section above (OAuth via `.env`).
-- `COLLECTORS=news,play` limits a run to those collectors (names: `trends_daily, google_suggest, play, reddit, reddit_search, hackernews, news`).
+- `COLLECTORS=news,play` limits a run to those collectors (names: `trends_daily, google_suggest, play, reddit, reddit_search, hackernews, stackexchange, news`).
 - Google endpoints used (Trends RSS, autocomplete, News RSS) are public but unofficial; expect occasional format changes. Each collector fails independently, so one breaking doesn't stop the run.
 
 ## Local development (no Docker)

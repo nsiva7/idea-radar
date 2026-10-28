@@ -3,6 +3,7 @@ package dev.nsiva.radar
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.request.header
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
@@ -28,6 +29,7 @@ private val log = LoggerFactory.getLogger("http")
 class Http(private val delayMs: Long) {
     private val client = HttpClient(CIO) {
         install(HttpTimeout) { requestTimeoutMillis = 60_000 }
+        install(ContentEncoding) { gzip(); deflate() }
         expectSuccess = false
     }
     private val ua = "Mozilla/5.0 (X11; Linux x86_64) idea-radar/0.1 (personal research)"
